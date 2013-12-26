@@ -1,0 +1,16 @@
+{
+	"keywords" : [
+		"rage4"
+	],
+	"autoload" : {
+		"psr-0" : {
+			"Splitice" : "src"
+		}
+	},
+	"name" : "splitice/rage4-api",
+	"type" : "library",
+	"license" : "MIT",
+	"require" : {
+		"php" : ">=5.4"
+	}
+}

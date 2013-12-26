@@ -1,4 +1,5 @@
-<?php
+<?php 
+namespace Splitice\Rage4;
 /*
 Rage4 DNS PHP5 class
 
@@ -9,14 +10,14 @@ moment so this class can help fill the gap in the meantime.
 Note: Number of API calls is not limited at the moment hence
       no mechanism added to track/limit the same.
 ------------------------------------------------------------
-Author                          : Asim Zeeshan (www.asim.pk)
+Author                          : Asim Zeeshan (www.asim.pk) & SplitIce (www.x4b.org)
 Email                           : asim@techbytes.pk
 Twitter                         : @asimzeeshan
 Usage instruction & download    : https://github.com/asimzeeshan/php-rage4-dns
 ------------------------------------------------------------
     */
 
-class rage4 {
+class API {
     private $username           = "";
     private $password           = "";
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
@@ -46,8 +47,7 @@ class rage4 {
     // Internal method
     // TODO: Instead of printing, I need to "return" back the error messages
     private function throwError($err) {
-        echo "<b><font color='#FF0000'>Error:</font></b> ".$err;
-        exit;
+        throw new Rage4Exception($err);
     }
     
     // Utility functions
@@ -78,10 +78,14 @@ class rage4 {
         */
     private function doQuery($method) {
         //echo "Trying ... https://secure.rage4.com/rapi/$method <br />";
-        $ch = curl_init("https://secure.rage4.com/rapi/".$method);
+        //echo var_dump($method);
+        $url = "https://secure.rage4.com/rapi/".$method;
+        //echo(var_dump($url));
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, FALSE);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_USERPWD, $this->username.":".$this->password);
         //echo $this->username.":".$this->password."<br />";
@@ -119,12 +123,21 @@ class rage4 {
         $email (string) = regular email address of the domain / NOC manager
         
         */
-    public function createDomain($domain_name, $email) {
+    public function createDomain($domain_name, $email, $ns = null) {
         if (empty($domain_name) || empty($email)) {
             $this->throwError("(method: createDomain) Domain name and Email address is required");
         }
         
-        $response = $this->doQuery("createregulardomain/?name=$domain_name&email=$email");
+        //URL encode
+        $domain_name = urlencode($domain_name);
+        $email = urlencode($email);
+        $ns = urlencode($ns);
+        
+        if($ns){
+        	$response = $this->doQuery("createregulardomainext/?name=$domain_name&email=$email&nsname=$ns");
+        }else{
+        	$response = $this->doQuery("createregulardomain/?name=$domain_name&email=$email");
+        }
         $response = json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
@@ -157,6 +170,21 @@ class rage4 {
         } else {
             return $response;
         }
+    }
+    
+    function getDomainByName($name){
+    	if (empty($name)) {
+    		$this->throwError("(method: getDomainByName) name is required");
+    	}
+    	
+    	$response = $this->doQuery("getdomainbyname/?name=$name");
+    	$response = json_decode($response, true);
+    	
+    	if (isset($response['error']) && $response['error']!="") {
+    		return $response['error'];
+    	} else {
+    		return $response;
+    	}
     }
     
     /*
@@ -269,6 +297,17 @@ class rage4 {
         }
     }
     
+    public function getGeoRegions() {
+    	$response = $this->doQuery("listgeoregions/");
+    	$response = json_decode($response, true);
+    
+    	if (isset($response['error']) && $response['error']!="") {
+    		return $response['error'];
+    	} else {
+    		return $response;
+    	}
+    }
+    
     /*
         CREATE NEW RECORD
         Create new record for a specific domain name
@@ -289,10 +328,9 @@ class rage4 {
         $priority (int)             = priority of the record being created [OPTIONAL!!]
         $failover (bool)            = Failure support? Yes/No
         $failovercontent (string)   = Failure IP / content
-        $ttl (int)                  = TTL
         
         */
-    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover="", $failovercontent="", $ttl=3600) {
+    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover="", $failovercontent="", $ttl = 3600, $geo=0, $geolat=null, $geolong=null) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
         $name               = (string)$this->cleanInput($name);
@@ -301,7 +339,7 @@ class rage4 {
         $priority           = $this->cleanInput($priority);
         //$failover           = (bool)$this->cleanInput($failover);
         $failovercontent    = (string)$this->cleanInput($failovercontent);
-        $ttl                = (int)$ttl;
+        
         
         if (empty($domain_id)) {
             $this->throwError("(method: createRecord) Domain id must be a number");
@@ -312,7 +350,7 @@ class rage4 {
         if (empty($content)) {
             $this->throwError("(method: createRecord) Content cannot be empty");
         }
-        if ($failover=="") {
+        if (!$failover) {
             $failover = "false";
         } else {
             $failover = "true";
@@ -320,10 +358,10 @@ class rage4 {
         
         $query_string = "$domain_id?";
         if (!empty($name)) {
-            $query_string .= "name=".$name;
+            $query_string .= "name=".urlencode($name);
         }
         if (!empty($content)) {
-            $query_string .= "&content=".$content;
+            $query_string .= "&content=".urlencode($content);
         }
         if (in_array($type, $this->valid_record_types)) {
             $type_id = array_search($type, $this->valid_record_types);
@@ -333,10 +371,23 @@ class rage4 {
         }
         if (!empty($priority)) {
             $priority = (int)$priority;
+        }else{
+        	$priority = 1;
         }
-        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl";
+        if(!is_numeric($geo)){
+        	$geo = 0;
+        }
+        $geo = (int)$geo;
+        
+        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl&geozone=$geo";
+        
+        if($geolat !== null && $geolong !== null){
+        	$query_string .= '&geolock=1&geolat='.(float)$geolat.'&geolong='.(float)$geolong;
+        }
+        
         
         $response = $this->doQuery("createrecord/$query_string");
+        //echo var_dump($response);
         $response = json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
@@ -359,10 +410,10 @@ class rage4 {
         $priority (int)             = priority of the record being created [OPTIONAL!!]
         $failover (bool)            = Failure support? Yes/No
         $failovercontent (string)   = Failure IP / content
-        $ttl (int)                  = TTL
         
         */
-    public function updateRecord($record_id, $name, $content, $priority="", $failover="", $failovercontent="", $ttl=3600) {
+    public function updateRecord($record_id, $name, $content, $priority="", $failover="", $failovercontent="", $ttl = 3600, $geo = 0, $geolat = null, $geolong = null) {
+    	//die(var_dump($record_id));
         // explicitly typecast into required types
         $record_id          = (int)$record_id;
         $name               = (string)$this->cleanInput($name);
@@ -370,7 +421,6 @@ class rage4 {
         $priority           = $this->cleanInput($priority);
         //$failover           = (bool)$this->cleanInput($failover);
         $failovercontent    = (string)$this->cleanInput($failovercontent);
-        $ttl                = (int)$ttl;
         
         
         if (empty($record_id)) {
@@ -398,11 +448,21 @@ class rage4 {
         if (!empty($priority)) {
             $priority = (int)$priority;
         }
-        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl";
+        if(!is_numeric($geo)){
+        	$geo = 0;
+        }
+        $geo = (int)$geo;
+        
+        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl&geozone=$geo";
+
+        if($geolat !== null && $geolong !== null){
+        	$query_string .= '&geolock=1&geolat='.(float)$geolat.'&geolong='.(float)$geolong;
+        }else{
+        	$query_string .= '&geolock=0';
+        }
         
         $response = $this->doQuery("updaterecord/$query_string");
         $response = json_decode($response, true);
-        
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else if (isset($response['status']) && $response['status']!="") {
