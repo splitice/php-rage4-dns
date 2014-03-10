@@ -21,6 +21,7 @@ class API {
     private $username           = "";
     private $password           = "";
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
+    private $ch;
 
     /*
         THE CONSTRUCTOR
@@ -42,6 +43,7 @@ class API {
             $this->username = $this->cleanInput($user);
             $this->password = $this->cleanInput($pass);
         }
+        $this->ch = curl_init();
     }
     
     // Internal method
@@ -81,19 +83,38 @@ class API {
         //echo var_dump($method);
         $url = "https://secure.rage4.com/rapi/".$method;
         //echo(var_dump($url));
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_USERPWD, $this->username.":".$this->password);
+        curl_setopt($this->ch, CURLOPT_URL, $url);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($this->ch, CURLOPT_USERPWD, $this->username.":".$this->password);
+        
+        $header = array();
+        $header[] = "Connection: keep-alive";
+        $header[] = "Keep-Alive: 300";
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $header);
         //echo $this->username.":".$this->password."<br />";
         //echo "HTTPCODE=".$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE)."<br />";
-        $result = curl_exec($ch);
+        $result = curl_exec($this->ch);
         //$this->dump($result);
         //exit;
         return $result;
+    }
+    
+    private function json_decode($str){
+    	if($str === false){
+    		throw new Rage4Exception("HTTP Error: ". $str);
+    	}
+    	
+    	$data = json_decode($str, true);
+    	
+    	if($data === null || $data === false){
+    		throw new Rage4Exception("Invalid JSON Data: ". $str);
+    	}
+    	
+    	return $data;
     }
 
     /*
@@ -105,7 +126,7 @@ class API {
         */
     public function getDomains() {
         $response = $this->doQuery("getdomains");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
 
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -138,7 +159,7 @@ class API {
         }else{
         	$response = $this->doQuery("createregulardomain/?name=$domain_name&email=$email");
         }
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -163,7 +184,7 @@ class API {
         }
         
         $response = $this->doQuery("createreversedomain4/?name=$domain_name&email=$email&subnet=$subnet");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -178,7 +199,7 @@ class API {
     	}
     	
     	$response = $this->doQuery("getdomainbyname/?name=$name");
-    	$response = json_decode($response, true);
+    	$response = $this->json_decode($response, true);
     	
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -203,7 +224,7 @@ class API {
         }
         
         $response = $this->doQuery("createreversedomain6/?name=$domain_name&email=$email&subnet=$subnet");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -231,7 +252,7 @@ class API {
         }
         
         $response = $this->doQuery("deletedomain/$domain_id");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -286,7 +307,7 @@ class API {
         }
         
         $response = $this->doQuery("getrecords/$domain_id");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         //$this->dump($response);
         
@@ -299,7 +320,7 @@ class API {
     
     public function getGeoRegions() {
     	$response = $this->doQuery("listgeoregions/");
-    	$response = json_decode($response, true);
+    	$response = $this->json_decode($response, true);
     
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -388,7 +409,7 @@ class API {
         
         $response = $this->doQuery("createrecord/$query_string");
         //echo var_dump($response);
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -462,7 +483,7 @@ class API {
         }
         
         $response = $this->doQuery("updaterecord/$query_string");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else if (isset($response['status']) && $response['status']!="") {
@@ -490,7 +511,7 @@ class API {
         }
         
         $response = $this->doQuery("deleterecord/$record_id");
-        $response = json_decode($response, true);
+        $response = $this->json_decode($response, true);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
