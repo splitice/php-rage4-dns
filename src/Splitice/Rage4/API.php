@@ -1,22 +1,14 @@
 <?php 
 namespace Splitice\Rage4;
-/*
-Rage4 DNS PHP5 class
 
-This is a PHP5 wrapper to easily integrate Rage4 DNS service
-(www.rage4.com) easily. There is no official PHP SDK at the 
-moment so this class can help fill the gap in the meantime.
-
-Note: Number of API calls is not limited at the moment hence
-      no mechanism added to track/limit the same.
-------------------------------------------------------------
-Author                          : Asim Zeeshan (www.asim.pk) & SplitIce (www.x4b.org)
-Email                           : asim@techbytes.pk
-Twitter                         : @asimzeeshan
-Usage instruction & download    : https://github.com/asimzeeshan/php-rage4-dns
-------------------------------------------------------------
-    */
-
+/**
+ * Rage4 DNS PHP5 class
+ * This is a PHP5 wrapper to easily integrate Rage4 DNS service (www.rage4.com) easily.
+ *
+ * @author SplitIce (www.x4b.net)
+ * @author Asim Zeeshan (www.asim.pk)
+ * @package Splitice\Rage4
+ */
 class API {
     private $username           = "";
     private $password           = "";
@@ -43,7 +35,9 @@ class API {
             $this->username = $this->cleanInput($user);
             $this->password = $this->cleanInput($pass);
         }
+
         $this->ch = curl_init();
+        curl_setopt($this->ch, CURLOPT_USERPWD, $this->username.":".$this->password);
     }
     
     // Internal method
@@ -56,13 +50,18 @@ class API {
     private function cleanInput($i) {
         return trim($i);
     }
-    
-    // Internal method to debug code, I will leave it here for now
-    public function debug() {
-        echo "<br />";
-        echo "Username: ".$this->username."<br />";
-        echo "Password: ".$this->password."<br />";
-        
+
+    /**
+     * @param array $query Query string data
+     * @return string an encoded query string
+     */
+    private function buildQueryString(array $query){
+        foreach($query as $qk=>$qv){
+            if($qv === null || $qv === ''){
+                unset($query[$qk]);
+            }
+        }
+        return http_build_query($query);
     }
     
     // Internal method to debug code, I will leave it here for now
@@ -70,6 +69,58 @@ class API {
         echo "<br /><pre>";
         print_r($obj);
         echo "</pre>";
+    }
+
+    /**
+     * @param string $method
+     * @param array $query_data
+     * @return string
+     */
+    private function executeApi($method, array $query_data = array()) {
+        //echo "Trying ... https://secure.rage4.com/rapi/$method <br />";
+        //echo var_dump($method);
+
+        //Build URL
+        $url = "https://secure.rage4.com/rapi/".$method.'/';
+        if($query_data) {
+            $url .= '?'.$this->buildQueryString($query_data);
+        }
+
+        //Set curl options
+        curl_setopt($this->ch, CURLOPT_URL, $url);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        //Connection keepalive
+        $header = array();
+        $header[] = "Connection: keep-alive";
+        $header[] = "Keep-Alive: 300";
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $header);
+
+        //Execute request
+        $result = curl_exec($this->ch);
+
+        //Format
+        if($result === false){
+            throw new Rage4Exception("Unable to communicate with Rage4 API: ".curl_error($this->ch));
+        }
+
+        //Check status code
+        $status_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+        if($status_code != 200){
+            throw new Rage4Exception("Invalid HTTP status code in response from Rage4 API");
+        }
+
+        //JSON
+        $json = @json_decode($result,true);
+        if($json === false){
+            throw new Rage4Exception("Invalid response JSON from Rage4 API");
+        }
+
+        return $json;
     }
     
     /*
@@ -117,16 +168,13 @@ class API {
     	return $data;
     }
 
-    /*
-        GET DOMAINS
-        Get all domain names in your Rage4.com account
-        ------------------------------------------------------------
-        Parameters: None
-        
-        */
+    /**
+     * Get all domain names in your Rage4.com account.
+     *
+     * @return string
+     */
     public function getDomains() {
-        $response = $this->doQuery("getdomains");
-        $response = $this->json_decode($response, true);
+        $response = $this->executeApi("getdomains");
 
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -134,32 +182,21 @@ class API {
             return $response;
         }
     }
-    
-    /*
-        CREATE A DOMAIN NAME
-        Create a new domain name (zone) in your Rage4.com account
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $name (string)  = domain name
-        $email (string) = regular email address of the domain / NOC manager
-        
-        */
+
+    /**
+     * Create a new domain name (zone) in your Rage4.com account.
+     *
+     * @param string $domain_name
+     * @param string $email
+     * @param string|null $ns
+     * @return string
+     */
     public function createDomain($domain_name, $email, $ns = null) {
         if (empty($domain_name) || empty($email)) {
             $this->throwError("(method: createDomain) Domain name and Email address is required");
         }
-        
-        //URL encode
-        $domain_name = urlencode($domain_name);
-        $email = urlencode($email);
-        $ns = urlencode($ns);
-        
-        if($ns){
-        	$response = $this->doQuery("createregulardomainext/?name=$domain_name&email=$email&nsname=$ns");
-        }else{
-        	$response = $this->doQuery("createregulardomain/?name=$domain_name&email=$email");
-        }
-        $response = $this->json_decode($response, true);
+
+        $response = $this->executeApi('createregulardomainext',array('name'=>$domain_name,'email'=>$email,'ns'=>$ns));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -168,23 +205,21 @@ class API {
         }
     }
     
-    /*
-        CREATE A REVERSE IPv4 DOMAIN
-        Create a reverse IPv4 domain name (zone) in your Rage4.com account
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $name (string)  = domain name (for reverse domains: ip6.arpa or in-addr.arpa)
-        $email (string) = owner's email
-        $subnet (int)   = valid subnet mask
-        
-        */
+
+    /**
+     * Create a reverse IPv4 domain name (zone) in your Rage4.com account.
+     *
+     * @param string $domain_name
+     * @param string $email
+     * @param integer $subnet
+     * @return mixed
+     */
     public function createReverseDomain4($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
             $this->throwError("(method: createReverseDomain4) Domain name, Email address and subnet is required");
         }
-        
-        $response = $this->doQuery("createreversedomain4/?name=$domain_name&email=$email&subnet=$subnet");
-        $response = $this->json_decode($response, true);
+
+        $response = $this->executeApi('createreversedomain4',array('name'=>$domain_name,'email'=>$email,'subnet'=>$subnet));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -192,14 +227,19 @@ class API {
             return $response;
         }
     }
-    
+
+    /**
+     * Get a domain name (zone) in your Rage4.com account by name.
+     *
+     * @param $name
+     * @return string
+     */
     function getDomainByName($name){
     	if (empty($name)) {
     		$this->throwError("(method: getDomainByName) name is required");
     	}
     	
-    	$response = $this->doQuery("getdomainbyname/?name=$name");
-    	$response = $this->json_decode($response, true);
+    	$response = $this->executeApi("getdomainbyname",array('name'=>$name));
     	
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -207,24 +247,21 @@ class API {
     		return $response;
     	}
     }
-    
-    /*
-        CREATE A REVERSE IPv6 DOMAIN
-        Create a reverse IPv6 domain name (zone) in your Rage4.com account
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $name (string)  = domain name (for reverse domains: ip6.arpa or in-addr.arpa)
-        $email (string) = owner's email
-        $subnet (int)   = valid subnet mask
-        
-        */
+
+    /**
+     * Create a reverse IPv6 domain name (zone) in your Rage4.com account
+     *
+     * @param string $domain_name domain name (for reverse domains: ip6.arpa or in-addr.arpa)
+     * @param string $email owner's email
+     * @param int $subnet valid subnet mask
+     * @return string
+     */
     public function createReverseDomain6($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
             $this->throwError("(method: createReverseDomain6) Domain name, Email address and subnet is required");
         }
-        
-        $response = $this->doQuery("createreversedomain6/?name=$domain_name&email=$email&subnet=$subnet");
-        $response = $this->json_decode($response, true);
+
+        $response = $this->executeApi('createreversedomain6',array('name'=>$domain_name,'email'=>$email, 'subnet'=>$subnet));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -243,6 +280,14 @@ class API {
         $domain_id (int) = domain id
         
         */
+    /**
+     * Delete a new domain name using its unique identifier in the
+     * system. To know the unqiue identifier, GetDomains() must be
+     * called first
+     *
+     * @param $domain_id
+     * @return bool
+     */
     public function deleteDomain($domain_id) {
         // explicitly typecast into integer
         $domain_id = (int)$domain_id;
@@ -251,8 +296,7 @@ class API {
             $this->throwError("(method: deleteDomain) Domain id must be a number");
         }
         
-        $response = $this->doQuery("deletedomain/$domain_id");
-        $response = $this->json_decode($response, true);
+        $response = $this->executeApi("deletedomain/$domain_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -261,17 +305,15 @@ class API {
         }
     }
 
-    /*
-        IMPORT A DOMAIN NAME
-        Importing a domain name including zone data into the system
-
-        Note! You need to allow AXFR transfers
-        Note! Only regular domains are supported
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $domain (string) = domain
-
-        */
+    /**
+     * Import a domain name including zone data into the system.
+     *
+     * Note! You need to allow AXFR transfers
+     * Note! Only regular domains are supported
+     *
+     * @param string $domain the domain
+     * @return bool
+     */
     public function importDomain($domain) {
         // explicitly typecast into string
         $domain = (string)$domain;
@@ -280,8 +322,7 @@ class API {
             $this->throwError("(method: importDomain) Domain must be a valid string");
         }
         
-        $response = $this->doQuery("importdomain/?name=$domain");
-        $response = json_decode($response, true);
+        $response = $this->executeApi("importdomain",array('name'=>$domain));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -289,15 +330,13 @@ class API {
             return (bool)$response['status'];
         }
     }
-    
-    /*
-        GET RECORDS OF A DOMAIN NAME
-        Get all records (A, AAAA etc) of a particular domain name
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $domain_id (int) = domain id
-        
-        */
+
+    /**
+     * Get all records (A, AAAA etc) of a particular domain name
+     *
+     * @param $domain_id
+     * @return string domain id
+     */
     public function getRecords($domain_id) {
         // explicitly typecast into integer
         $domain_id = (int)$domain_id;
@@ -306,10 +345,7 @@ class API {
             $this->throwError("(method: getRecords) Domain id must be a number");
         }
         
-        $response = $this->doQuery("getrecords/$domain_id");
-        $response = $this->json_decode($response, true);
-        
-        //$this->dump($response);
+        $response = $this->executeApi("getrecords/$domain_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -317,10 +353,14 @@ class API {
             return $response;
         }
     }
-    
+
+    /**
+     * Get a list of valid Geographical regions
+     *
+     * @return string
+     */
     public function getGeoRegions() {
-    	$response = $this->doQuery("listgeoregions/");
-    	$response = $this->json_decode($response, true);
+    	$response = $this->executeApi("listgeoregions");
     
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -428,7 +468,7 @@ class API {
         $record_id (int)            = record id that you wish to update
         $name (string)              = name of the record
         $content (string)           = content of the record
-        $priority (int)             = priority of the record being created [OPTIONAL!!]
+        $priority (int)             = priority of the record being created (optional)
         $failover (bool)            = Failure support? Yes/No
         $failovercontent (string)   = Failure IP / content
         
@@ -464,7 +504,7 @@ class API {
             $query_string .= "name=".$name;
         }
         if (!empty($content)) {
-            $query_string .= "&content=".$content;
+            $query_string .= "&content=".urlencode($content);
         }
         if (!empty($priority)) {
             $priority = (int)$priority;
@@ -493,15 +533,12 @@ class API {
         }
     }
 
-    /*
-        DELETE A RECORD
-        Delete a record in an existing domain name (zone) in your 
-        account
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $record_id (int) = record id
-        
-        */
+    /**
+     * Delete a record in an existing domain name (zone) in your account
+     *
+     * @param $record_id record identifier
+     * @return mixed
+     */
     public function deleteRecord($record_id) {
         // explicitly typecast into integer
         $record_id = (int)$record_id;
@@ -510,8 +547,7 @@ class API {
             $this->throwError("(method: deleteRecord) Record id must be a number");
         }
         
-        $response = $this->doQuery("deleterecord/$record_id");
-        $response = $this->json_decode($response, true);
+        $response = $this->executeApi("deleterecord/$record_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
