@@ -289,35 +289,14 @@ class API {
     		return $response;
     	}
     }
-    
-    /*
-        CREATE NEW RECORD
-        Create new record for a specific domain name
-        ------------------------------------------------------------
-        Parameters: (all required except where mentioned)
-        $domain_id (int)            = domain id
-        $name (string)              = name of the record
-        $content (string)           = content of the record
-        $type (string)              = type, should be one of the following 
-                                        1 = NS
-                                        2 = A
-                                        3 = AAAA
-                                        4 = CNAME
-                                        5 = MX
-                                        6 = TXT
-                                        7 = SRV
-                                        8 = PTR
-        $priority (int)             = priority of the record being created (optional)
-        $failover (bool)            = Failure support? Yes/No
-        $failovercontent (string)   = Failure IP / content
-        
-        */
+
     /**
      * Create new record for a specific domain
      *
      * @param int $domain_id
      * @param string $name name of the record
      * @param string $content content of the record
+     * @param string $type record type, should be one of: NS, A, AAAA, CNAME, MX, TXT, SRV, PTR
      * @param int|null $priority priority of the record being created (optional)
      * @param bool $failover Failure support enabled
      * @param string $failovercontent Failure IP / content
