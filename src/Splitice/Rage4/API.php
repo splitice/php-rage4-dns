@@ -10,8 +10,6 @@ namespace Splitice\Rage4;
  * @package Splitice\Rage4
  */
 class API {
-    private $username           = "";
-    private $password           = "";
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
     private $ch;
 
@@ -28,25 +26,19 @@ class API {
         Parameters: $user and $pass
         
         */
-    public function __construct($user, $pass) {
+    public function __construct($username, $password) {
         if (empty($user) || empty($pass)){
             $this->throwError("Username and Password cannot be empty!");
-        } else if (!empty($user) && !empty($pass)){
-            $this->username = $this->cleanInput($user);
-            $this->password = $this->cleanInput($pass);
         }
 
         $this->ch = curl_init();
-        curl_setopt($this->ch, CURLOPT_USERPWD, $this->username.":".$this->password);
+        curl_setopt($this->ch, CURLOPT_USERPWD, $username.":".$password);
     }
-    
-    // Internal method
-    // TODO: Instead of printing, I need to "return" back the error messages
+
     private function throwError($err) {
         throw new Rage4Exception($err);
     }
-    
-    // Utility functions
+
     private function cleanInput($i) {
         return trim($i);
     }
@@ -68,13 +60,6 @@ class API {
             }
         }
         return http_build_query($query);
-    }
-    
-    // Internal method to debug code, I will leave it here for now
-    private function dump($obj) {
-        echo "<br /><pre>";
-        print_r($obj);
-        echo "</pre>";
     }
 
     /**
@@ -127,51 +112,6 @@ class API {
         }
 
         return $json;
-    }
-    
-    /*
-        Core function that queries the API and renders results
-        ------------------------------------------------------------
-        Parameters: $method (it includes the method and/or querystring)
-        
-        */
-    private function doQuery($method) {
-        //echo "Trying ... https://secure.rage4.com/rapi/$method <br />";
-        //echo var_dump($method);
-        $url = "https://secure.rage4.com/rapi/".$method;
-        //echo(var_dump($url));
-        curl_setopt($this->ch, CURLOPT_URL, $url);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($this->ch, CURLOPT_USERPWD, $this->username.":".$this->password);
-        
-        $header = array();
-        $header[] = "Connection: keep-alive";
-        $header[] = "Keep-Alive: 300";
-        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $header);
-        //echo $this->username.":".$this->password."<br />";
-        //echo "HTTPCODE=".$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE)."<br />";
-        $result = curl_exec($this->ch);
-        //$this->dump($result);
-        //exit;
-        return $result;
-    }
-    
-    private function json_decode($str){
-    	if($str === false){
-    		throw new Rage4Exception("HTTP Error: ". $str);
-    	}
-    	
-    	$data = json_decode($str, true);
-    	
-    	if($data === null || $data === false){
-    		throw new Rage4Exception("Invalid JSON Data: ". $str);
-    	}
-    	
-    	return $data;
     }
 
     /**
