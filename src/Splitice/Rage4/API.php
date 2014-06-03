@@ -51,14 +51,20 @@ class API {
         return trim($i);
     }
 
+    private function encodeBool($value){
+        return $value?'true':'false';
+    }
+
     /**
      * @param array $query Query string data
      * @return string an encoded query string
      */
     private function buildQueryString(array $query){
+        //Null values should be an empty string
+        //e.g ?nullable=&....
         foreach($query as $qk=>$qv){
-            if($qv === null || $qv === ''){
-                unset($query[$qk]);
+            if($qv === null){
+                $query[$qk] = '';
             }
         }
         return http_build_query($query);
@@ -386,21 +392,35 @@ class API {
                                         6 = TXT
                                         7 = SRV
                                         8 = PTR
-        $priority (int)             = priority of the record being created [OPTIONAL!!]
+        $priority (int)             = priority of the record being created (optional)
         $failover (bool)            = Failure support? Yes/No
         $failovercontent (string)   = Failure IP / content
         
         */
-    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover="", $failovercontent="", $ttl = 3600, $geo=0, $geolat=null, $geolong=null) {
+    /**
+     * Create new record for a specific domain
+     *
+     * @param int $domain_id
+     * @param string $name name of the record
+     * @param string $content content of the record
+     * @param int|null $priority priority of the record being created (optional)
+     * @param bool $failover Failure support enabled
+     * @param string $failovercontent Failure IP / content
+     * @param int $ttl TTL of record
+     * @param int $geozone Geographical Zone ID (or -1 for closest first)
+     * @param null|float $geolat Latitude override
+     * @param null|float $geolong Longitude override
+     * @param bool $geolock Lock Geographical coordinates
+     * @return string
+     */
+    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
         $name               = (string)$this->cleanInput($name);
         $content            = (string)$this->cleanInput($content);
         $type               = $this->cleanInput($type);
         $priority           = $this->cleanInput($priority);
-        //$failover           = (bool)$this->cleanInput($failover);
         $failovercontent    = (string)$this->cleanInput($failovercontent);
-        
         
         if (empty($domain_id)) {
             $this->throwError("(method: createRecord) Domain id must be a number");
@@ -411,79 +431,55 @@ class API {
         if (empty($content)) {
             $this->throwError("(method: createRecord) Content cannot be empty");
         }
-        if (!$failover) {
-            $failover = "false";
-        } else {
-            $failover = "true";
-        }
+
+        //Build query (non-nullable fields)
+        $query = array('name'=>$name,'content'=>$content,'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
+
+        //Build query (nullable fields)
+        $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
+        $query['geolock'] = $this->encodeBool($geolock);
+        $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
+        $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
-        $query_string = "$domain_id?";
-        if (!empty($name)) {
-            $query_string .= "name=".urlencode($name);
-        }
-        if (!empty($content)) {
-            $query_string .= "&content=".urlencode($content);
-        }
-        if (in_array($type, $this->valid_record_types)) {
-            $type_id = array_search($type, $this->valid_record_types);
-            $query_string .= "&type=".$type_id;
-        } else {
-            $this->throwError("(method: createRecord) Type must be a valid option from the following NS, MX, A, AAAA, CNAME, TXT, SRV");        
-        }
-        if (!empty($priority)) {
-            $priority = (int)$priority;
-        }else{
-        	$priority = 1;
-        }
-        if(!is_numeric($geo)){
-        	$geo = 0;
-        }
-        $geo = (int)$geo;
-        
-        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl&geozone=$geo";
-        
-        if($geolat !== null && $geolong !== null){
-        	$query_string .= '&geolock=1&geolat='.(float)$geolat.'&geolong='.(float)$geolong;
-        }
-        
-        
-        $response = $this->doQuery("createrecord/$query_string");
-        //echo var_dump($response);
-        $response = $this->json_decode($response, true);
+        $response = $this->executeApi("createrecord/$domain_id", $query);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
-        } else if (isset($response['status']) && $response['status']!="") {
-            return "Record added with id ".$response['id'];
         } else {
             return $response;
         }
     }
-    
-    /*
-        UPDATE EXISTING RECORD
-        Update an existing record for a specific domain name (no need to mention domain name)
-        ------------------------------------------------------------
-        Parameters: (all required except where mentioned)
-        $record_id (int)            = record id that you wish to update
-        $name (string)              = name of the record
-        $content (string)           = content of the record
-        $priority (int)             = priority of the record being created (optional)
-        $failover (bool)            = Failure support? Yes/No
-        $failovercontent (string)   = Failure IP / content
-        
-        */
-    public function updateRecord($record_id, $name, $content, $priority="", $failover="", $failovercontent="", $ttl = 3600, $geo = 0, $geolat = null, $geolong = null) {
-    	//die(var_dump($record_id));
+
+    /**
+     * Update an existing record for a specific domain name (no need to mention domain name)
+     *
+     * @param int $record_id record id that you wish to update
+     * @param string $name name of the record
+     * @param string $content content of the record
+     * @param int|null $priority priority of the record being created (optional)
+     * @param bool $failover Failure support enabled
+     * @param string $failovercontent Failure IP / content
+     * @param int $ttl TTL of record
+     * @param int $geozone Geographical Zone ID (or -1 for closest first)
+     * @param null|float $geolat Latitude override
+     * @param null|float $geolong Longitude override
+     * @param bool $geolock Lock Geographical coordinates
+     * @return string
+     */
+    public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null, $geolock=true) {
         // explicitly typecast into required types
         $record_id          = (int)$record_id;
         $name               = (string)$this->cleanInput($name);
         $content            = (string)$this->cleanInput($content);
         $priority           = $this->cleanInput($priority);
-        //$failover           = (bool)$this->cleanInput($failover);
         $failovercontent    = (string)$this->cleanInput($failovercontent);
-        
-        
+
+        //Handle null and similar zone values
+        if(!is_numeric($geozone)){
+            $geozone = 0;
+        }
+
+        //validate input
         if (empty($record_id)) {
             $this->throwError("(method: updateRecord) Record id must be a number");
         }
@@ -493,41 +489,20 @@ class API {
         if (empty($content)) {
             $this->throwError("(method: updateRecord) Content cannot be empty");
         }
-        if ($failover=="") {
-            $failover = "false";
-        } else {
-            $failover = "true";
-        }
-        
-        $query_string = "$record_id?";
-        if (!empty($name)) {
-            $query_string .= "name=".$name;
-        }
-        if (!empty($content)) {
-            $query_string .= "&content=".urlencode($content);
-        }
-        if (!empty($priority)) {
-            $priority = (int)$priority;
-        }
-        if(!is_numeric($geo)){
-        	$geo = 0;
-        }
-        $geo = (int)$geo;
-        
-        $query_string .= "&priority=$priority&failover=$failover&failovercontent=$failovercontent&ttl=$ttl&geozone=$geo";
 
-        if($geolat !== null && $geolong !== null){
-        	$query_string .= '&geolock=1&geolat='.(float)$geolat.'&geolong='.(float)$geolong;
-        }else{
-        	$query_string .= '&geolock=0';
-        }
+        //Build query (non-nullable fields)
+        $query = array('name'=>$name,'content'=>$content,'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
+
+        //Build query (nullable fields)
+        $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
+        $query['geolock'] = $this->encodeBool($geolock);
+        $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
+        $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
-        $response = $this->doQuery("updaterecord/$query_string");
-        $response = $this->json_decode($response, true);
+        $response = $this->executeApi("updaterecord/$record_id", $query);
+
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
-        } else if (isset($response['status']) && $response['status']!="") {
-            return "Record updated with id ".$response['id'];
         } else {
             return $response;
         }
