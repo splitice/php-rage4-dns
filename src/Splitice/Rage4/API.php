@@ -13,34 +13,19 @@ class API {
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
     private $ch;
 
-    /*
-        THE CONSTRUCTOR
-        
-        All API calls uses BASIC authentication using user's 
-         - email address as username
-         - Account Key as password
-        
-        Note: Account Key is available in User Profile section of 
-        Rage4 DNS control panel.
-        ------------------------------------------------------------
-        Parameters: $user and $pass
-        
-        */
+    /**
+     * Create an instance of the Rage4 API client.
+     *
+     * @param string $username Rage4 account username (Email Address)
+     * @param string $password Rage4 account password (Account Key)
+     */
     public function __construct($username, $password) {
         if (empty($user) || empty($pass)){
-            $this->throwError("Username and Password cannot be empty!");
+            throw new Rage4Exception("Username and Password cannot be empty!");
         }
 
         $this->ch = curl_init();
         curl_setopt($this->ch, CURLOPT_USERPWD, $username.":".$password);
-    }
-
-    private function throwError($err) {
-        throw new Rage4Exception($err);
-    }
-
-    private function cleanInput($i) {
-        return trim($i);
     }
 
     private function encodeBool($value){
@@ -139,7 +124,7 @@ class API {
      */
     public function createDomain($domain_name, $email, $ns = null) {
         if (empty($domain_name) || empty($email)) {
-            $this->throwError("(method: createDomain) Domain name and Email address is required");
+            throw new Rage4Exception("(method: createDomain) Domain name and Email address is required");
         }
 
         $response = $this->executeApi('createregulardomainext',array('name'=>$domain_name,'email'=>$email,'ns'=>$ns));
@@ -162,7 +147,7 @@ class API {
      */
     public function createReverseDomain4($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
-            $this->throwError("(method: createReverseDomain4) Domain name, Email address and subnet is required");
+            throw new Rage4Exception("(method: createReverseDomain4) Domain name, Email address and subnet is required");
         }
 
         $response = $this->executeApi('createreversedomain4',array('name'=>$domain_name,'email'=>$email,'subnet'=>$subnet));
@@ -182,7 +167,7 @@ class API {
      */
     function getDomainByName($name){
     	if (empty($name)) {
-    		$this->throwError("(method: getDomainByName) name is required");
+    		throw new Rage4Exception("(method: getDomainByName) name is required");
     	}
     	
     	$response = $this->executeApi("getdomainbyname",array('name'=>$name));
@@ -204,7 +189,7 @@ class API {
      */
     public function createReverseDomain6($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
-            $this->throwError("(method: createReverseDomain6) Domain name, Email address and subnet is required");
+            throw new Rage4Exception("(method: createReverseDomain6) Domain name, Email address and subnet is required");
         }
 
         $response = $this->executeApi('createreversedomain6',array('name'=>$domain_name,'email'=>$email, 'subnet'=>$subnet));
@@ -215,17 +200,7 @@ class API {
             return $response;
         }
     }
-    
-    /*
-        DELETE A DOMAIN NAME
-        Delete a new domain name using its unique identifier in the
-        system. To know the unqiue identifier, GetDomains() must be
-        called first
-        ------------------------------------------------------------
-        Parameters: (all required)
-        $domain_id (int) = domain id
-        
-        */
+
     /**
      * Delete a new domain name using its unique identifier in the
      * system. To know the unqiue identifier, GetDomains() must be
@@ -239,7 +214,7 @@ class API {
         $domain_id = (int)$domain_id;
         
         if (empty($domain_id)) {
-            $this->throwError("(method: deleteDomain) Domain id must be a number");
+            throw new Rage4Exception("(method: deleteDomain) Domain id must be a number");
         }
         
         $response = $this->executeApi("deletedomain/$domain_id");
@@ -265,7 +240,7 @@ class API {
         $domain = (string)$domain;
         
         if (empty($domain)) {
-            $this->throwError("(method: importDomain) Domain must be a valid string");
+            throw new Rage4Exception("(method: importDomain) Domain must be a valid string");
         }
         
         $response = $this->executeApi("importdomain",array('name'=>$domain));
@@ -288,7 +263,7 @@ class API {
         $domain_id = (int)$domain_id;
         
         if (empty($domain_id)) {
-            $this->throwError("(method: getRecords) Domain id must be a number");
+            throw new Rage4Exception("(method: getRecords) Domain id must be a number");
         }
         
         $response = $this->executeApi("getrecords/$domain_id");
@@ -356,20 +331,15 @@ class API {
     public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
-        $name               = (string)$this->cleanInput($name);
-        $content            = (string)$this->cleanInput($content);
-        $type               = $this->cleanInput($type);
-        $priority           = $this->cleanInput($priority);
-        $failovercontent    = (string)$this->cleanInput($failovercontent);
         
         if (empty($domain_id)) {
-            $this->throwError("(method: createRecord) Domain id must be a number");
+            throw new Rage4Exception("(method: createRecord) Domain id must be a number");
         }
         if (empty($name)) {
-            $this->throwError("(method: createRecord) Name cannot be empty");
+            throw new Rage4Exception("(method: createRecord) Name cannot be empty");
         }
         if (empty($content)) {
-            $this->throwError("(method: createRecord) Content cannot be empty");
+            throw new Rage4Exception("(method: createRecord) Content cannot be empty");
         }
 
         //Build query (non-nullable fields)
@@ -409,10 +379,6 @@ class API {
     public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null, $geolock=true) {
         // explicitly typecast into required types
         $record_id          = (int)$record_id;
-        $name               = (string)$this->cleanInput($name);
-        $content            = (string)$this->cleanInput($content);
-        $priority           = $this->cleanInput($priority);
-        $failovercontent    = (string)$this->cleanInput($failovercontent);
 
         //Handle null and similar zone values
         if(!is_numeric($geozone)){
@@ -421,13 +387,13 @@ class API {
 
         //validate input
         if (empty($record_id)) {
-            $this->throwError("(method: updateRecord) Record id must be a number");
+            throw new Rage4Exception("(method: updateRecord) Record id must be a number");
         }
         if (empty($name)) {
-            $this->throwError("(method: updateRecord) Name cannot be empty");
+            throw new Rage4Exception("(method: updateRecord) Name cannot be empty");
         }
         if (empty($content)) {
-            $this->throwError("(method: updateRecord) Content cannot be empty");
+            throw new Rage4Exception("(method: updateRecord) Content cannot be empty");
         }
 
         //Build query (non-nullable fields)
@@ -459,7 +425,7 @@ class API {
         $record_id = (int)$record_id;
         
         if (empty($record_id)) {
-            $this->throwError("(method: deleteRecord) Record id must be a number");
+            throw new Rage4Exception("(method: deleteRecord) Record id must be a number");
         }
         
         $response = $this->executeApi("deleterecord/$record_id");
@@ -470,5 +436,4 @@ class API {
             return $response['status'];
         }
     }
-    
 }
