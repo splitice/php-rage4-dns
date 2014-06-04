@@ -11,16 +11,24 @@ namespace Splitice\Rage4;
  */
 class Rage4Api {
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
+
+    /**
+     * @var IRage4ApiClient
+     */
     private $client;
 
     /**
      * Create an instance of the Rage4 API interface.
      *
-     * @param string $username Rage4 account username (Email Address)
+     * @param string|IRage4ApiClient $username Rage4 account username (Email Address) or
      * @param string $password Rage4 account password (Account Key)
      */
-    public function __construct($username, $password) {
-        $this->client = new Rage4ApiClient($username,$password);
+    public function __construct($username, $password = null) {
+        if(is_string($password) && is_string($username)){
+            $this->client = new Rage4ApiClient($username,$password);
+        }elseif($username instanceof IRage4ApiClient){
+            $this->client = $username;
+        }
     }
 
     private function encodeBool($value){
@@ -48,6 +56,7 @@ class Rage4Api {
      * @param string $domain_name
      * @param string $email
      * @param string|null $ns
+     * @throws Rage4Exception
      * @return string
      */
     public function createDomain($domain_name, $email, $ns = null) {
@@ -63,7 +72,7 @@ class Rage4Api {
             return $response;
         }
     }
-    
+
 
     /**
      * Create a reverse IPv4 domain name (zone) in your Rage4.com account.
@@ -71,6 +80,7 @@ class Rage4Api {
      * @param string $domain_name
      * @param string $email
      * @param integer $subnet
+     * @throws Rage4Exception
      * @return mixed
      */
     public function createReverseDomain4($domain_name, $email, $subnet) {
@@ -91,6 +101,7 @@ class Rage4Api {
      * Get a domain name (zone) in your Rage4.com account by name.
      *
      * @param $name
+     * @throws Rage4Exception
      * @return string
      */
     function getDomainByName($name){
@@ -113,6 +124,7 @@ class Rage4Api {
      * @param string $domain_name domain name (for reverse domains: ip6.arpa or in-addr.arpa)
      * @param string $email owner's email
      * @param int $subnet valid subnet mask
+     * @throws Rage4Exception
      * @return string
      */
     public function createReverseDomain6($domain_name, $email, $subnet) {
@@ -135,6 +147,7 @@ class Rage4Api {
      * called first
      *
      * @param $domain_id
+     * @throws Rage4Exception
      * @return bool
      */
     public function deleteDomain($domain_id) {
@@ -161,6 +174,7 @@ class Rage4Api {
      * Note! Only regular domains are supported
      *
      * @param string $domain the domain
+     * @throws Rage4Exception
      * @return bool
      */
     public function importDomain($domain) {
@@ -184,6 +198,7 @@ class Rage4Api {
      * Get all records (A, AAAA etc) of a particular domain name
      *
      * @param $domain_id
+     * @throws Rage4Exception
      * @return string domain id
      */
     public function getRecords($domain_id) {
@@ -225,7 +240,7 @@ class Rage4Api {
      * @param string $name name of the record
      * @param string $content content of the record
      * @param string $type record type, should be one of: NS, A, AAAA, CNAME, MX, TXT, SRV, PTR
-     * @param int|null $priority priority of the record being created (optional)
+     * @param int|null|string $priority priority of the record being created (optional)
      * @param bool $failover Failure support enabled
      * @param string $failovercontent Failure IP / content
      * @param int $ttl TTL of record
@@ -233,6 +248,7 @@ class Rage4Api {
      * @param null|float $geolat Latitude override
      * @param null|float $geolong Longitude override
      * @param bool $geolock Lock Geographical coordinates
+     * @throws Rage4Exception
      * @return string
      */
     public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
@@ -281,6 +297,7 @@ class Rage4Api {
      * @param null|float $geolat Latitude override
      * @param null|float $geolong Longitude override
      * @param bool $geolock Lock Geographical coordinates
+     * @throws Rage4Exception
      * @return string
      */
     public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null, $geolock=true) {
@@ -325,6 +342,7 @@ class Rage4Api {
      * Delete a record in an existing domain name (zone) in your account
      *
      * @param $record_id record identifier
+     * @throws Rage4Exception
      * @return mixed
      */
     public function deleteRecord($record_id) {

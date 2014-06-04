@@ -14,7 +14,8 @@ namespace Splitice\Rage4;
  * @package Splitice\Rage4
  *
  */
-class Rage4ApiClient {
+class Rage4ApiClient implements IRage4ApiClient
+{
     /**
      * Create an instance of the Rage4 API client.
      *
