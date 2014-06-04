@@ -9,6 +9,8 @@ use Splitice\Rage4\Rage4Api;
  */
 
 class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
+    const API_CLIENT = '\\Splitice\\Rage4\\IRage4ApiClient';
+
     function testCreateDomain(){
         //Setup
         $domain = "test.com";
@@ -16,7 +18,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $ns = "ns";
 
         //Assert
-        $client = $this->getMock('IRage4ApiClient', array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>$ns)));
 
         //Do
@@ -30,7 +32,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $email = "email@test.com";
 
         //Assert
-        $client = $this->getMock('IRage4ApiClient', array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>null)));
 
         //Do
@@ -45,7 +47,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $subnet = 24;
 
         //Assert
-        $client = $this->getMock('IRage4ApiClient', array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'subnet'=>$subnet)));
 
         //Do
@@ -60,7 +62,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $subnet = 24;
 
         //Assert
-        $client = $this->getMock('IRage4ApiClient', array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'subnet'=>$subnet)));
 
         //Do
