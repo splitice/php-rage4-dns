@@ -140,6 +140,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $name = 'test.com';
         $content = '1.1.1.1';
         $type = 'A';
+        $priority = 1;
         $failover = false;
         $failovercontent = "1.1.1.2";
         $ttl = 10;
@@ -152,10 +153,23 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('createrecord/'.$domain),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>3,'failover'=>'false','ttl'=>10,'geozone'=>-1,'geoloat'=>100,'geolong'=>"-20.1",'geolock'=>'false')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>2,'failover'=>'false','ttl'=>10,'geozone'=>-1,'geolat'=>100,'geolong'=>"-20.1",'geolock'=>'false')));
 
         //Do
         $api = new Rage4Api($client);
-        $api->createRecord($domain,$name,$content,$type,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+        $api->createRecord($domain,$name,$content,$type,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+    }
+
+    function testDeleteRecord(){
+        //Setup
+        $record = 1;
+
+        //Assert
+        $client = $this->getMock(self::API_CLIENT);
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('deleterecord/'.$record),$this->equalTo(array()));
+
+        //Do
+        $api = new Rage4Api($client);
+        $api->deleteRecord($record);
     }
 } 
