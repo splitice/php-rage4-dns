@@ -1,6 +1,8 @@
 Rage4 DNS PHP5 class
 ====================
 
+[![Build Status](https://travis-ci.org/splitice/php-rage4-dns.svg)](https://travis-ci.org/splitice/php-rage4-dns)
+
 This is a PHP5 wrapper to easily integrate Rage4 DNS service (www.rage4.com). There is no official PHP SDK currently.
 
 Number of API calls is not limited at the moment hence no mechanism added to track/limit the same.
