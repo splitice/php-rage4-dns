@@ -11,93 +11,20 @@ namespace Splitice\Rage4;
  */
 class Rage4Api {
     private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
-    private $ch;
+    private $client;
 
     /**
-     * Create an instance of the Rage4 API client.
+     * Create an instance of the Rage4 API interface.
      *
      * @param string $username Rage4 account username (Email Address)
      * @param string $password Rage4 account password (Account Key)
      */
     public function __construct($username, $password) {
-        if (empty($username) || empty($password)){
-            throw new Rage4Exception("Username and Password cannot be empty!");
-        }
-
-        $this->ch = curl_init();
-        curl_setopt($this->ch, CURLOPT_USERPWD, $username.":".$password);
+        $this->client = new Rage4ApiClient($username,$password);
     }
 
     private function encodeBool($value){
         return $value?'true':'false';
-    }
-
-    /**
-     * @param array $query Query string data
-     * @return string an encoded query string
-     */
-    private function buildQueryString(array $query){
-        //Null values should be an empty string
-        //e.g ?nullable=&....
-        foreach($query as $qk=>$qv){
-            if($qv === null){
-                $query[$qk] = '';
-            }
-        }
-        return http_build_query($query);
-    }
-
-    /**
-     * @param string $method
-     * @param array $query_data
-     * @return string
-     */
-    private function executeApi($method, array $query_data = array()) {
-        //echo "Trying ... https://secure.rage4.com/rapi/$method <br />";
-        //echo var_dump($method);
-
-        //Build URL
-        $url = "https://secure.rage4.com/rapi/".$method.'/';
-        if($query_data) {
-            $url .= '?'.$this->buildQueryString($query_data);
-        }
-        echo var_dump($url);
-
-        //Set curl options
-        curl_setopt($this->ch, CURLOPT_URL, $url);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        //Connection keepalive
-        $header = array();
-        $header[] = "Connection: keep-alive";
-        $header[] = "Keep-Alive: 300";
-        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $header);
-
-        //Execute request
-        $result = curl_exec($this->ch);
-
-        //Format
-        if($result === false){
-            throw new Rage4Exception("Unable to communicate with Rage4 API: ".curl_error($this->ch));
-        }
-
-        //Check status code
-        $status_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-        if($status_code != 200){
-            throw new Rage4Exception("Invalid HTTP status code ($status_code) in response from Rage4 API");
-        }
-
-        //JSON
-        $json = @json_decode($result,true);
-        if($json === false){
-            throw new Rage4Exception("Invalid response JSON from Rage4 API");
-        }
-
-        return $json;
     }
 
     /**
@@ -106,7 +33,7 @@ class Rage4Api {
      * @return string
      */
     public function getDomains() {
-        $response = $this->executeApi("getdomains");
+        $response = $this->client->executeApi("getdomains");
 
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -128,7 +55,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: createDomain) Domain name and Email address is required");
         }
 
-        $response = $this->executeApi('createregulardomainext',array('name'=>$domain_name,'email'=>$email,'ns'=>$ns));
+        $response = $this->client->executeApi('createregulardomainext',array('name'=>$domain_name,'email'=>$email,'ns'=>$ns));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -151,7 +78,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: createReverseDomain4) Domain name, Email address and subnet is required");
         }
 
-        $response = $this->executeApi('createreversedomain4',array('name'=>$domain_name,'email'=>$email,'subnet'=>$subnet));
+        $response = $this->client->executeApi('createreversedomain4',array('name'=>$domain_name,'email'=>$email,'subnet'=>$subnet));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -171,7 +98,7 @@ class Rage4Api {
     		throw new Rage4Exception("(method: getDomainByName) name is required");
     	}
     	
-    	$response = $this->executeApi("getdomainbyname",array('name'=>$name));
+    	$response = $this->client->executeApi("getdomainbyname",array('name'=>$name));
     	
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -193,7 +120,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: createReverseDomain6) Domain name, Email address and subnet is required");
         }
 
-        $response = $this->executeApi('createreversedomain6',array('name'=>$domain_name,'email'=>$email, 'subnet'=>$subnet));
+        $response = $this->client->executeApi('createreversedomain6',array('name'=>$domain_name,'email'=>$email, 'subnet'=>$subnet));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -218,7 +145,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: deleteDomain) Domain id must be a number");
         }
         
-        $response = $this->executeApi("deletedomain/$domain_id");
+        $response = $this->client->executeApi("deletedomain/$domain_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -244,7 +171,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: importDomain) Domain must be a valid string");
         }
         
-        $response = $this->executeApi("importdomain",array('name'=>$domain));
+        $response = $this->client->executeApi("importdomain",array('name'=>$domain));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -267,7 +194,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: getRecords) Domain id must be a number");
         }
         
-        $response = $this->executeApi("getrecords/$domain_id");
+        $response = $this->client->executeApi("getrecords/$domain_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -282,7 +209,7 @@ class Rage4Api {
      * @return string
      */
     public function getGeoRegions() {
-    	$response = $this->executeApi("listgeoregions");
+    	$response = $this->client->executeApi("listgeoregions");
     
     	if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
@@ -331,7 +258,7 @@ class Rage4Api {
         $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
         $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
-        $response = $this->executeApi("createrecord/$domain_id", $query);
+        $response = $this->client->executeApi("createrecord/$domain_id", $query);
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -385,7 +312,7 @@ class Rage4Api {
         $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
         $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
-        $response = $this->executeApi("updaterecord/$record_id", $query);
+        $response = $this->client->executeApi("updaterecord/$record_id", $query);
 
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
@@ -408,7 +335,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: deleteRecord) Record id must be a number");
         }
         
-        $response = $this->executeApi("deleterecord/$record_id");
+        $response = $this->client->executeApi("deleterecord/$record_id");
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
