@@ -178,7 +178,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('updaterecord/'.$record),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>2,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'false')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'false')));
 
         //Do
         $api = new Rage4Api($client);
