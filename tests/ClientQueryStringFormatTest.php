@@ -8,7 +8,7 @@ use Splitice\Rage4\Rage4ApiClient;
  * Time: 12:51 PM
  */
 
-class TestClientQueryStringFormat extends PHPUnit_Framework_TestCase {
+class ClientQueryStringFormatTest extends PHPUnit_Framework_TestCase {
     function testSimpleQueryString(){
         $client = new Rage4ApiClient("1","1");
         $this->assertEquals('q1=a&q2=b',$client->buildQueryString(array('q1'=>'a','q2'=>'b')));
