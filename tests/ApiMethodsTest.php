@@ -156,6 +156,6 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Do
         $api = new Rage4Api($client);
-        $api->createRecord($domain);
+        $api->createRecord($domain,$name,$content,$type,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
     }
 } 
