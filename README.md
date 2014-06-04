@@ -1,37 +1,70 @@
-## Rage4 DNS PHP5 class
+Rage4 DNS PHP5 class
+====================
 
-This is a PHP5 wrapper to easily integrate Rage4 DNS service (www.rage4.com) easily. There is no official PHP SDK at the moment so this class can help fill the gap in the meantime.
+This is a PHP5 wrapper to easily integrate Rage4 DNS service (www.rage4.com). There is no official PHP SDK currently.
 
 Number of API calls is not limited at the moment hence no mechanism added to track/limit the same.
 
 The methods introduced in this first release are
 - getDomains()
+- getDomainByName()
 - createDomain()
 - createReverseDomain4()
 - createReverseDomain6()
 - deleteDomain()
 - importDomain()
 - getRecords()
+- getGeoRegions()
 - createRecord()
 - updateRecord()
 - deleteRecord()
 
-You can also consult the official documentation avilable at the following URL:
+You can also consult the official documentation available at the following URL:
 http://gbshouse.uservoice.com/knowledgebase/articles/109834-rage4-dns-developers-api
 
-Official set of SDKs by Rage4: http://code.google.com/p/rage4-dns-sdk/ (only dotNET available at the moment)
+Official set of SDKs by Rage4: http://code.google.com/p/rage4-dns-sdk/ (only .NET available at the moment)
 
-## Configuration
+## Requirements
+You need PHP 5.3.2+ compiled with the cURL extension.
 
-	include("class.rage4.php");
-	// your username (email) and API KEY from Rage4.com
-	// you can get your API KEY from this URL
-	// https://secure.rage4.com/Secure/ShowProfile
-	$r4 = new rage4('you@yourhost.com', 'your-api-key-here');
+## Install PHP Rage4 API
+### Installing via Composer
+
+The recommended way to install OVH SDK is through [Composer](http://getcomposer.org).
+
+1. Add ``splitice/rage4-api`` as a dependency in your project's ``composer.json`` file:
+
+        {
+            "require": {
+                "splitice/rage4-api": "dev-master"
+            }
+        }
+
+2. Download and install Composer:
+
+        curl -s http://getcomposer.org/installer | php
+
+3. Install your dependencies:
+
+        php composer.phar install
+
+4. Require Composer's autoloader
+
+    Composer also prepares an autoload file that's capable of autoloading all of the classes in any of the libraries that it downloads. To use it, just add the following line to your code's bootstrap process:
+
+        require 'vendor/autoload.php';
+
+You can find out more on how to install Composer, configure autoloading, and other best-practices for defining dependencies at [getcomposer.org](http://getcomposer.org).
 
 ## Examples
 
-Here are some examples on how to do basic things. Of course you need to configure the class in your app before using the scriptlets below.
+Here are some examples on how to do basic operations.
+
+### Configure the API client
+```
+using Splitice\Rage4\Rage4Api;
+$r4 = new Rage4Api("username","password");
+```
 
 ### Get all domain names (zones)
 
@@ -103,17 +136,12 @@ Note! There is no way to update the record-type at the moment, so the easy way i
 	// deleteRecord($record_id)
 	$response = $r4->deleteRecord(5555);
 	print_r($response);
-    
+
 ## TODO / Wish List
 
-- Return the errors instead of echo'ing them in-file
+- Monolog support
  
 ## Credits
 
-- [Asim Zeeshan](https://github.com/asimzeeshan)
-- Piotr Ginalski from gbshouse.com for tracking down certain issues in my code
-
-#### Special thanks to
-
-- Rage4.com for providing the free beta run and then the free service to me
-- GitHub for providing this amazing free service
+- [Asim Zeeshan](https://github.com/asimzeeshan): The original class
+- Piotr Ginalski from gbshouse.com for being very useful :)

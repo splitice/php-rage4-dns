@@ -165,7 +165,6 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $record = 1;
         $name = 'test.com';
         $content = '1.1.1.1';
-        $type = 'A';
         $priority = 1;
         $failover = false;
         $failovercontent = "1.1.1.2";
@@ -183,7 +182,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Do
         $api = new Rage4Api($client);
-        $api->updateRecord($record,$name,$content,$type,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+        $api->updateRecord($record,$name,$content,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
     }
 
     function testDeleteRecord(){
