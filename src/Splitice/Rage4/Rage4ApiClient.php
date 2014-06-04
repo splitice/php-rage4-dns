@@ -20,6 +20,7 @@ class Rage4ApiClient {
      *
      * @param string $username Rage4 account username (Email Address)
      * @param string $password Rage4 account password (Account Key)
+     * @throws Rage4Exception
      */
     public function __construct($username, $password) {
         if (empty($username) || empty($password)){
@@ -34,7 +35,7 @@ class Rage4ApiClient {
      * @param array $query Query string data
      * @return string an encoded query string
      */
-    private function buildQueryString(array $query){
+    public function buildQueryString(array $query){
         //Null values should be an empty string
         //e.g ?nullable=&....
         foreach($query as $qk=>$qv){
@@ -48,6 +49,7 @@ class Rage4ApiClient {
     /**
      * @param string $method
      * @param array $query_data
+     * @throws Rage4Exception
      * @return string
      */
     public function executeApi($method, array $query_data = array()) {
