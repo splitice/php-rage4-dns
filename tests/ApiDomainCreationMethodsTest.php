@@ -18,7 +18,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $ns = "ns";
 
         //Assert
-        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>$ns)));
 
         //Do
@@ -32,7 +32,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $email = "email@test.com";
 
         //Assert
-        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>null)));
 
         //Do
@@ -47,7 +47,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $subnet = 24;
 
         //Assert
-        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'subnet'=>$subnet)));
 
         //Do
@@ -62,7 +62,7 @@ class ApiDomainCreationMethodsTest extends PHPUnit_Framework_TestCase {
         $subnet = 24;
 
         //Assert
-        $client = $this->getMock(self::API_CLIENT, array('executeApi'));
+        $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with($this->equalTo(array('name'=>$domain,'email'=>$email,'subnet'=>$subnet)));
 
         //Do
