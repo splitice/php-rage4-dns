@@ -100,7 +100,7 @@ class Rage4Api {
     /**
      * Get a domain name (zone) in your Rage4.com account by name.
      *
-     * @param $name
+     * @param string $name
      * @throws Rage4Exception
      * @return string
      */
@@ -146,7 +146,7 @@ class Rage4Api {
      * system. To know the unqiue identifier, GetDomains() must be
      * called first
      *
-     * @param $domain_id
+     * @param int $domain_id
      * @throws Rage4Exception
      * @return bool
      */
@@ -197,7 +197,7 @@ class Rage4Api {
     /**
      * Get all records (A, AAAA etc) of a particular domain name
      *
-     * @param $domain_id
+     * @param int $domain_id
      * @throws Rage4Exception
      * @return string domain id
      */
@@ -341,7 +341,7 @@ class Rage4Api {
     /**
      * Delete a record in an existing domain name (zone) in your account
      *
-     * @param $record_id record identifier
+     * @param int $record_id record identifier
      * @throws Rage4Exception
      * @return mixed
      */
