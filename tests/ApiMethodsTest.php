@@ -119,7 +119,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Do
         $api = new Rage4Api($client);
-        $api->deleteDomain($domain);
+        $api->getRecords($domain);
     }
 
     function testGetGeoRegions(){
