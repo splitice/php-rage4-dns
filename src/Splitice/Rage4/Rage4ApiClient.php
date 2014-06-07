@@ -62,7 +62,7 @@ class Rage4ApiClient implements IRage4ApiClient
         if($query_data) {
             $url .= '?'.$this->buildQueryString($query_data);
         }
-        echo var_dump($url);
+        //echo var_dump($url);
 
         //Set curl options
         curl_setopt($this->ch, CURLOPT_URL, $url);
