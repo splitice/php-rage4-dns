@@ -199,7 +199,7 @@ class Rage4Api {
      *
      * @param int $domain_id
      * @throws Rage4Exception
-     * @return string domain id
+     * @return string|array error or array of records
      */
     public function getRecords($domain_id) {
         // explicitly typecast into integer
@@ -221,7 +221,7 @@ class Rage4Api {
     /**
      * Get a list of valid Geographical regions
      *
-     * @return string
+     * @return string|array error or array of records
      */
     public function getGeoRegions() {
     	$response = $this->client->executeApi("listgeoregions");
