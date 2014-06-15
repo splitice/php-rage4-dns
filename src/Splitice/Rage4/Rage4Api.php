@@ -247,11 +247,10 @@ class Rage4Api {
      * @param int $geozone Geographical Zone ID (or -1 for closest first)
      * @param null|float $geolat Latitude override
      * @param null|float $geolong Longitude override
-     * @param bool $geolock Lock Geographical coordinates
      * @throws Rage4Exception
      * @return string
      */
-    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
+    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
         
@@ -270,7 +269,6 @@ class Rage4Api {
 
         //Build query (nullable fields)
         $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
-        $query['geolock'] = $this->encodeBool($geolock);
         $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
         $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
@@ -296,11 +294,10 @@ class Rage4Api {
      * @param int $geozone Geographical Zone ID (or -1 for closest first)
      * @param null|float $geolat Latitude override
      * @param null|float $geolong Longitude override
-     * @param bool $geolock Lock Geographical coordinates
      * @throws Rage4Exception
      * @return string
      */
-    public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null, $geolock=true) {
+    public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null) {
         // explicitly typecast into required types
         $record_id          = (int)$record_id;
 
@@ -325,7 +322,6 @@ class Rage4Api {
 
         //Build query (nullable fields)
         $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
-        $query['geolock'] = $this->encodeBool($geolock);
         $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
         $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
