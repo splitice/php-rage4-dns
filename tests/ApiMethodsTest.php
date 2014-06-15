@@ -147,17 +147,16 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $geozone = -1;
         $geolat = 100;
         $geolong = "-20.1";
-        $geolock = false;
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('createrecord/'.$domain),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>2,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'false')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>2,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1)));
 
         //Do
         $api = new Rage4Api($client);
-        $api->createRecord($domain,$name,$content,$type,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+        $api->createRecord($domain,$name,$content,$type,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong);
     }
 
     function testUpdateRecord(){
@@ -172,17 +171,16 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $geozone = -1;
         $geolat = 100;
         $geolong = "-20.1";
-        $geolock = false;
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('updaterecord/'.$record),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'false')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1)));
 
         //Do
         $api = new Rage4Api($client);
-        $api->updateRecord($record,$name,$content,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+        $api->updateRecord($record,$name,$content,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong);
     }
 
     function testUpdateRecordNullGeo(){
@@ -197,17 +195,16 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $geozone = -1;
         $geolat = null;
         $geolong = null;
-        $geolock = false;
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('updaterecord/'.$record),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>'','geolong'=>'','geolock'=>'false')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>'','geolong'=>'')));
 
         //Do
         $api = new Rage4Api($client);
-        $api->updateRecord($record,$name,$content,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong,$geolock);
+        $api->updateRecord($record,$name,$content,$priority,$failover,$failovercontent,$ttl,$geozone,$geolat,$geolong);
     }
 
     function testDeleteRecord(){
