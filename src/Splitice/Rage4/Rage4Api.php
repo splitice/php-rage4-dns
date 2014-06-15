@@ -118,6 +118,21 @@ class Rage4Api {
     	}
     }
 
+    function getDomain($id){
+        if (empty($id)) {
+            throw new Rage4Exception("(method: getDomain) id is required");
+        }
+        $id = (int)$id;
+
+        $response = $this->client->executeApi("getdomain/$id");
+
+        if (isset($response['error']) && $response['error']!="") {
+            return $response['error'];
+        } else {
+            return $response;
+        }
+    }
+
     /**
      * Create a reverse IPv6 domain name (zone) in your Rage4.com account
      *
