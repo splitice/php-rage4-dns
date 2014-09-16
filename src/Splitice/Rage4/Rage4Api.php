@@ -118,21 +118,6 @@ class Rage4Api {
     	}
     }
 
-    function getDomain($id){
-        if (empty($id)) {
-            throw new Rage4Exception("(method: getDomain) id is required");
-        }
-        $id = (int)$id;
-
-        $response = $this->client->executeApi("getdomain/$id");
-
-        if (isset($response['error']) && $response['error']!="") {
-            return $response['error'];
-        } else {
-            return $response;
-        }
-    }
-
     /**
      * Create a reverse IPv6 domain name (zone) in your Rage4.com account
      *
@@ -262,10 +247,11 @@ class Rage4Api {
      * @param int $geozone Geographical Zone ID (or -1 for closest first)
      * @param null|float $geolat Latitude override
      * @param null|float $geolong Longitude override
+     * @param bool $geolock Lock Geographical coordinates
      * @throws Rage4Exception
      * @return string
      */
-    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null) {
+    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
         
@@ -283,7 +269,8 @@ class Rage4Api {
         $query = array('name'=>$name,'content'=>$content,'type'=>array_search($type,$this->valid_record_types),'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
 
         //Build query (nullable fields)
-        $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
+        $query['priority'] = ($priority===null||$priority==="")?0:(int)$priority;
+        $query['geolock'] = $this->encodeBool($geolock);
         $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
         $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
         
