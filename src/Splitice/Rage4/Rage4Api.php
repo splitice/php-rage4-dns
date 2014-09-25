@@ -274,8 +274,6 @@ class Rage4Api {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
 
-
-        
         if (empty($domain_id)) {
             throw new Rage4Exception("(method: createRecord) Domain id must be a number");
         }
