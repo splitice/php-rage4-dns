@@ -10,7 +10,7 @@ namespace Splitice\Rage4;
  * @package Splitice\Rage4
  */
 class Rage4Api {
-    private $valid_record_types = array(1 => "NS", 2 => "A", 3 => "AAAA", 4 => "CNAME", 5 => "MX", 6 => "TXT", 7 => "SRV", 8 => "PTR");
+    private $valid_record_types = null;
 
     /**
      * @var IRage4ApiClient
@@ -221,7 +221,7 @@ class Rage4Api {
     /**
      * Get a list of valid Geographical regions
      *
-     * @return string|array error or array of records
+     * @return string|array error or array of geo regions
      */
     public function getGeoRegions() {
     	$response = $this->client->executeApi("listgeoregions");
@@ -231,6 +231,25 @@ class Rage4Api {
     	} else {
     		return $response;
     	}
+    }
+
+    /**
+     * Get a list of valid record types and their numerical values
+     *
+     * @return string|array error or array of record types
+     */
+    public function getRecordTypes() {
+        $response = $this->client->executeApi("listrecordtypes");
+
+        if (isset($response['error']) && $response['error']!="") {
+            return $response['error'];
+        } else {
+            $ret = array();
+            foreach($response as $v){
+                $ret[$v['name']] = $v['value'];
+            }
+            return $ret;
+        }
     }
 
     /**
@@ -254,6 +273,8 @@ class Rage4Api {
     public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
+
+
         
         if (empty($domain_id)) {
             throw new Rage4Exception("(method: createRecord) Domain id must be a number");
@@ -265,8 +286,20 @@ class Rage4Api {
             throw new Rage4Exception("(method: createRecord) Content cannot be empty");
         }
 
+        if(is_numeric($type)){
+            $record_type = (int)$type;
+        }else {
+            if($this->valid_record_types === null){
+                $this->valid_record_types = $this->getRecordTypes();
+            }
+            if(!isset($this->valid_record_types[$type])){
+                throw new Rage4Exception('Invalid record type: '.$type);
+            }
+            $record_type = $this->valid_record_types[$type];
+        }
+
         //Build query (non-nullable fields)
-        $query = array('name'=>$name,'content'=>$content,'type'=>array_search($type,$this->valid_record_types),'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
+        $query = array('name'=>$name,'content'=>$content,'type'=>$record_type,'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
 
         //Build query (nullable fields)
         $query['priority'] = ($priority===null||$priority==="")?0:(int)$priority;
