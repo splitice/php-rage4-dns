@@ -139,7 +139,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $domain = 1;
         $name = 'test.com';
         $content = '1.1.1.1';
-        $type = 'A';
+        $type = 2;
         $priority = 1;
         $failover = false;
         $failovercontent = "1.1.1.2";
@@ -150,9 +150,10 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
+
         $client->expects($this->once())->method('executeApi')->with(
             $this->equalTo('createrecord/'.$domain),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>2,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'true')));
+            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>$type,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'true')));
 
         //Do
         $api = new Rage4Api($client);
