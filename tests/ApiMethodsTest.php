@@ -15,11 +15,11 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         //Setup
         $domain = "test.com";
         $email = "email@test.com";
-        $ns = "ns";
+        $ns = "ns.com";
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomainext'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>$ns)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>'ns1.'.$ns,'ns2'=>'ns2.'.$ns)));
 
         //Do
         $api = new Rage4Api($client);
@@ -33,7 +33,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomainext'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns'=>null)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>null,'ns2'=>null)));
 
         //Do
         $api = new Rage4Api($client);

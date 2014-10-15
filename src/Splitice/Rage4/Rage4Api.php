@@ -56,15 +56,23 @@ class Rage4Api {
      * @param string $domain_name
      * @param string $email
      * @param string|null $ns
+     * @param string $nsprefix
      * @throws Rage4Exception
      * @return string
      */
-    public function createDomain($domain_name, $email, $ns = null) {
+    public function createDomain($domain_name, $email, $ns = null, $nsprefix = 'ns') {
         if (empty($domain_name) || empty($email)) {
             throw new Rage4Exception("(method: createDomain) Domain name and Email address is required");
         }
 
-        $response = $this->client->executeApi('createregulardomainext',array('name'=>$domain_name,'email'=>$email,'ns'=>$ns));
+        //Create a ns1 & ns2 from the options given or use defaults
+        $ns1 = $ns2 = null;
+        if($ns != null){
+            $ns1 = $nsprefix.'1.'.$ns;
+            $ns2 = $nsprefix.'2.'.$ns;
+        }
+
+        $response = $this->client->executeApi('createregulardomain',array('name'=>$domain_name,'email'=>$email,'ns1'=>$ns1,'ns2'=>$ns2));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
