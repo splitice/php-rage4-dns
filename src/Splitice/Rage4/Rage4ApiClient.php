@@ -29,6 +29,11 @@ class Rage4ApiClient implements IRage4ApiClient
         }
 
         $this->ch = curl_init();
+        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($this->ch, CURLOPT_USERPWD, $username.":".$password);
     }
 
@@ -66,11 +71,6 @@ class Rage4ApiClient implements IRage4ApiClient
 
         //Set curl options
         curl_setopt($this->ch, CURLOPT_URL, $url);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($this->ch, CURLOPT_TIMEOUT, 25);
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
 
         //Connection keepalive
         $header = array();
