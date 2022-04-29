@@ -359,12 +359,15 @@ class Rage4Api {
         }
 
         //Build query (non-nullable fields)
-        $query = array('name'=>$name,'content'=>$content,'failover'=>$this->encodeBool($failover), 'failovercontent'=>$failovercontent, 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
+        $query = array('name'=>$name,'content'=>$content,'failover'=>$this->encodeBool($failover), 'ttl'=>$ttl, 'geozone'=>(int)$geozone);
+		if($failovercontent){
+			$query['failovercontent'] = $failovercontent;
+		}
 
         //Build query (nullable fields)
         $query['priority'] = ($priority===null||$priority==="")?null:(int)$priority;
-        $query['geolat'] = ($geolat===null || $geolat === '')?null:(float)$geolat;
-        $query['geolong'] = ($geolong===null || $geolong === '')?null:(float)$geolong;
+        if($geolat !== null && $geolat !== '') $query['geolat'] = (float)$geolat;
+	    if($geolong !== null && $geolong !== '') $query['geolong'] = (float)$geolong;
         
         $response = $this->client->executeApi("updaterecord/$record_id", $query);
 
