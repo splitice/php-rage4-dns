@@ -217,7 +217,7 @@ class Rage4Api {
             throw new Rage4Exception("(method: getRecords) Domain id must be a number");
         }
         
-        $response = $this->client->executeApi("getrecords/$domain_id");
+        $response = $this->client->executeApi("GetRecords", array('id'=>$domain_id));
         
         if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
