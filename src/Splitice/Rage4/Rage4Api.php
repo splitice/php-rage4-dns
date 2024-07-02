@@ -278,7 +278,7 @@ class Rage4Api {
      * @throws Rage4Exception
      * @return string
      */
-    public function createRecord($domain_id, $name, $content, $type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
+    public function createRecord($domain_id, $name, $content, $record_type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
         $domain_id          = (int)$domain_id;
 
@@ -290,18 +290,6 @@ class Rage4Api {
         }
         if (empty($content)) {
             throw new Rage4Exception("(method: createRecord) Content cannot be empty");
-        }
-
-        if(is_numeric($type)){
-            $record_type = (int)$type;
-        }else {
-            if($this->valid_record_types === null){
-                $this->valid_record_types = $this->getRecordTypes();
-            }
-            if(!isset($this->valid_record_types[$type])){
-                throw new Rage4Exception('Invalid record type: '.$type);
-            }
-            $record_type = $this->valid_record_types[$type];
         }
 
         //Build query (non-nullable fields)
