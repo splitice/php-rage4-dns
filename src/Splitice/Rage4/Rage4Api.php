@@ -254,7 +254,7 @@ class Rage4Api {
         } else {
             $ret = array();
             foreach($response as $v){
-                $ret[$v['name']] = $v['value'];
+                $ret[$v['key']] = $v['value'];
             }
             return $ret;
         }
