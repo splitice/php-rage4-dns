@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: splitice
- * Date: 6/4/14
- * Time: 12:31 PM
- */
 
 namespace Splitice\Rage4;
 
@@ -16,6 +10,8 @@ namespace Splitice\Rage4;
  */
 class Rage4ApiClient implements IRage4ApiClient
 {
+    protected $ch;
+
     /**
      * Create an instance of the Rage4 API client.
      *
@@ -90,6 +86,12 @@ class Rage4ApiClient implements IRage4ApiClient
         //Check status code
         $status_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
         if($status_code != 200){
+            if($status_code == 400) {
+                $json = @json_decode($result,true);
+                if($json && !empty($json['error'])){
+                    throw new Rage4Exception("Got a 400 error in response from Rage4 API with error: ".json_encode($json['error']));
+                }
+            }
             throw new Rage4Exception("Invalid HTTP status code ($status_code) in response from Rage4 API");
         }
 

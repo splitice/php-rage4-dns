@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: splitice
- * Date: 6/4/14
- * Time: 2:28 PM
- */
+
 namespace Splitice\Rage4;
 
 
@@ -26,7 +21,7 @@ interface IRage4ApiClient
      * @param string $method
      * @param array $query_data
      * @throws Rage4Exception
-     * @return string
+     * @return any
      */
     public function executeApi($method, array $query_data = array());
 }
