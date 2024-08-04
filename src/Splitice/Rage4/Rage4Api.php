@@ -42,8 +42,10 @@ class Rage4Api {
      */
     public function getDomains() {
         $response = $this->client->executeApi("GetDomains");
-
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -73,8 +75,10 @@ class Rage4Api {
         }
 
         $response = $this->client->executeApi('CreateRegularDomain',array('name'=>$domain_name,'email'=>$email,'ns1'=>$ns1,'ns2'=>$ns2));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -97,8 +101,10 @@ class Rage4Api {
         }
 
         $response = $this->client->executeApi('createreversedomain4',array('name'=>$domain_name,'email'=>$email,'subnet'=>$subnet));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -118,8 +124,11 @@ class Rage4Api {
     	}
     	
     	$response = $this->client->executeApi("GetDomainByName",array('name'=>$name));
-    	
-    	if (isset($response['error']) && $response['error']!="") {
+
+		if(isset($response['errors']) && count($response['errors'])){
+			$type = array_keys($response['errors']);
+			return $response['errors'][$type[0]][0];
+		} else if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
     	} else {
     		return $response;
@@ -141,8 +150,10 @@ class Rage4Api {
         }
 
         $response = $this->client->executeApi('createreversedomain6',array('name'=>$domain_name,'email'=>$email, 'subnet'=>$subnet));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -167,8 +178,10 @@ class Rage4Api {
         }
         
         $response = $this->client->executeApi("DeleteDomain", array('id'=>$domain_id));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return (bool)$response['status'];
@@ -194,8 +207,10 @@ class Rage4Api {
         }
         
         $response = $this->client->executeApi("ImportDomain",array('name'=>$domain));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return (bool)$response['status'];
@@ -218,8 +233,10 @@ class Rage4Api {
         }
         
         $response = $this->client->executeApi("GetRecords", array('id'=>$domain_id));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -233,8 +250,10 @@ class Rage4Api {
      */
     public function getGeoRegions() {
     	$response = $this->client->executeApi("ListGeoRegions");
-    
-    	if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
     		return $response['error'];
     	} else {
     		return $response;
@@ -248,8 +267,10 @@ class Rage4Api {
      */
     public function getRecordTypes() {
         $response = $this->client->executeApi("ListRecordTypes");
-
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             $ret = array();
@@ -303,8 +324,10 @@ class Rage4Api {
         $query['id'] = $domain_id;
         
         $response = $this->client->executeApi("CreateRecord", $query);
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -360,8 +383,10 @@ class Rage4Api {
         $query['id'] = $record_id;
         
         $response = $this->client->executeApi("UpdateRecord", $query);
-
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response;
@@ -384,8 +409,10 @@ class Rage4Api {
         }
         
         $response = $this->client->executeApi("DeleteRecord",array('id'=>$record_id));
-        
-        if (isset($response['error']) && $response['error']!="") {
+	    if(isset($response['errors']) && count($response['errors'])){
+		    $type = array_keys($response['errors']);
+		    return $response['errors'][$type[0]][0];
+	    } else if (isset($response['error']) && $response['error']!="") {
             return $response['error'];
         } else {
             return $response['status'];
