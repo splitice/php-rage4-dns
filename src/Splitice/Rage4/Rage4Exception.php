@@ -8,4 +8,10 @@ class Rage4Exception extends \Exception {
         parent::__construct($message, $code, $previous);
         $this->apidata = $apidata;
     }
+
+	public function getApidata(): mixed
+	{
+		return $this->apidata;
+	}
+
 }
