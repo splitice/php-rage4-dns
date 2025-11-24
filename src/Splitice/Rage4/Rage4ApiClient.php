@@ -16,6 +16,7 @@ namespace Splitice\Rage4;
  */
 class Rage4ApiClient implements IRage4ApiClient
 {
+    private $ch;
     /**
      * Create an instance of the Rage4 API client.
      *
