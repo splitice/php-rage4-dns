@@ -1,4 +1,6 @@
 <?php
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Splitice\Rage4\Rage4Api;
 
 /**
@@ -8,8 +10,19 @@ use Splitice\Rage4\Rage4Api;
  * Time: 2:24 PM
  */
 
-class ApiMethodsTest extends PHPUnit_Framework_TestCase {
+class ApiMethodsTest extends TestCase {
     const API_CLIENT = '\\Splitice\\Rage4\\IRage4ApiClient';
+
+    /**
+     * Create a mock using the legacy test suite's helper name.
+     *
+     * @param class-string $className
+     * @return MockObject
+     */
+    private function getMock($className)
+    {
+        return $this->createMock($className);
+    }
 
     function testCreateDomain(){
         //Setup
@@ -19,7 +32,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>'ns1.'.$ns,'ns2'=>'ns2.'.$ns)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('CreateRegularDomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>'ns1.'.$ns,'ns2'=>'ns2.'.$ns)));
 
         //Do
         $api = new Rage4Api($client);
@@ -33,7 +46,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('createregulardomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>null,'ns2'=>null)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('CreateRegularDomain'),$this->equalTo(array('name'=>$domain,'email'=>$email,'ns1'=>null,'ns2'=>null)));
 
         //Do
         $api = new Rage4Api($client);
@@ -76,7 +89,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('getdomainbyname'),$this->equalTo(array('name'=>$domain)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('GetDomainByName'),$this->equalTo(array('name'=>$domain)));
 
         //Do
         $api = new Rage4Api($client);
@@ -89,7 +102,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('deletedomain/'.$domain),$this->equalTo(array()));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('DeleteDomain'),$this->equalTo(array('id'=>$domain)))->willReturn(array('status'=>true));
 
         //Do
         $api = new Rage4Api($client);
@@ -102,7 +115,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('importdomain'),$this->equalTo(array('name'=>$domain)));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('ImportDomain'),$this->equalTo(array('name'=>$domain)))->willReturn(array('status'=>true));
 
         //Do
         $api = new Rage4Api($client);
@@ -115,7 +128,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('getrecords/'.$domain),$this->equalTo(array()));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('GetRecords'),$this->equalTo(array('id'=>$domain)));
 
         //Do
         $api = new Rage4Api($client);
@@ -127,7 +140,7 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('listgeoregions'),$this->equalTo(array()));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('ListGeoRegions'),$this->equalTo(array()));
 
         //Do
         $api = new Rage4Api($client);
@@ -152,8 +165,8 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         $client = $this->getMock(self::API_CLIENT);
 
         $client->expects($this->once())->method('executeApi')->with(
-            $this->equalTo('createrecord/'.$domain),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>$type,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'true')));
+            $this->equalTo('CreateRecord'),
+            $this->equalTo(array('name'=>$name,'content'=>$content,'type'=>$type,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'geolock'=>'true','id'=>$domain)));
 
         //Do
         $api = new Rage4Api($client);
@@ -176,8 +189,8 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         //Assert
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
-            $this->equalTo('updaterecord/'.$record),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1)));
+            $this->equalTo('UpdateRecord'),
+            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>100.0,'geolong'=>-20.1,'id'=>$record)));
 
         //Do
         $api = new Rage4Api($client);
@@ -200,8 +213,8 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
         //Assert
         $client = $this->getMock(self::API_CLIENT);
         $client->expects($this->once())->method('executeApi')->with(
-            $this->equalTo('updaterecord/'.$record),
-            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'geolat'=>'','geolong'=>'')));
+            $this->equalTo('UpdateRecord'),
+            $this->equalTo(array('name'=>$name,'content'=>$content,'priority'=>$priority,'failover'=>'false','failovercontent'=>$failovercontent,'ttl'=>10,'geozone'=>-1,'id'=>$record)));
 
         //Do
         $api = new Rage4Api($client);
@@ -214,10 +227,10 @@ class ApiMethodsTest extends PHPUnit_Framework_TestCase {
 
         //Assert
         $client = $this->getMock(self::API_CLIENT);
-        $client->expects($this->once())->method('executeApi')->with($this->equalTo('deleterecord/'.$record),$this->equalTo(array()));
+        $client->expects($this->once())->method('executeApi')->with($this->equalTo('DeleteRecord'),$this->equalTo(array('id'=>$record)))->willReturn(array('status'=>true));
 
         //Do
         $api = new Rage4Api($client);
         $api->deleteRecord($record);
     }
-} 
+}

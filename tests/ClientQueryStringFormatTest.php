@@ -1,4 +1,5 @@
 <?php
+use PHPUnit\Framework\TestCase;
 use Splitice\Rage4\Rage4ApiClient;
 
 /**
@@ -8,7 +9,7 @@ use Splitice\Rage4\Rage4ApiClient;
  * Time: 12:51 PM
  */
 
-class ClientQueryStringFormatTest extends PHPUnit_Framework_TestCase {
+class ClientQueryStringFormatTest extends TestCase {
     function testSimpleQueryString(){
         $client = new Rage4ApiClient("1","1");
         $this->assertEquals('q1=a&q2=b',$client->buildQueryString(array('q1'=>'a','q2'=>'b')));
@@ -21,4 +22,4 @@ class ClientQueryStringFormatTest extends PHPUnit_Framework_TestCase {
         $client = new Rage4ApiClient("1","1");
         $this->assertEquals('q1=&q2=0&q3=0',$client->buildQueryString(array('q1'=>null,'q2'=>0,'q3'=>'0')));
     }
-} 
+}

@@ -12,16 +12,16 @@ namespace Splitice\Rage4;
 interface IRage4ApiClient
 {
     /**
-     * @param array $query Query string data
+     * @param array<string, mixed> $query Query string data
      * @return string an encoded query string
      */
     public function buildQueryString(array $query);
 
     /**
      * @param string $method
-     * @param array $query_data
+     * @param array<string, mixed> $query_data
      * @throws Rage4Exception
-     * @return any
+     * @return array<int|string, mixed>
      */
     public function executeApi($method, array $query_data = array());
 }

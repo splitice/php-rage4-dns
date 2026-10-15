@@ -1,0 +1,10 @@
+parameters:
+    level: 5
+    # PHPStan 2 can model PHP 7.1 and newer. Use its oldest supported target
+    # so analysis does not impose the CI runtime's PHP 8.4 deprecations on
+    # this compatibility-oriented package.
+    phpVersion: 70100
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - src
+    tmpDir: /tmp/phpstan-rage4

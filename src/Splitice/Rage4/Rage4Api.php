@@ -10,8 +10,6 @@ namespace Splitice\Rage4;
  * @package Splitice\Rage4
  */
 class Rage4Api {
-    private $valid_record_types = null;
-
     /**
      * @var IRage4ApiClient
      */
@@ -21,7 +19,7 @@ class Rage4Api {
      * Create an instance of the Rage4 API interface.
      *
      * @param string|IRage4ApiClient $username Rage4 account username (Email Address) or
-     * @param string $password Rage4 account password (Account Key)
+     * @param string|null $password Rage4 account password (Account Key)
      */
     public function __construct($username, $password = null) {
         if(is_string($password) && is_string($username)){
@@ -31,6 +29,10 @@ class Rage4Api {
         }
     }
 
+    /**
+     * @param bool $value
+     * @return string
+     */
     private function encodeBool($value){
         return $value?'true':'false';
     }
@@ -38,7 +40,7 @@ class Rage4Api {
     /**
      * Get all domain names in your Rage4.com account.
      *
-     * @return string
+     * @return array<int, array<string, mixed>>|string
      */
     public function getDomains() {
         $response = $this->client->executeApi("GetDomains");
@@ -60,7 +62,7 @@ class Rage4Api {
      * @param string|null $ns
      * @param string $nsprefix
      * @throws Rage4Exception
-     * @return string
+     * @return array<string, mixed>|string
      */
     public function createDomain($domain_name, $email, $ns = null, $nsprefix = 'ns') {
         if (empty($domain_name) || empty($email)) {
@@ -93,7 +95,7 @@ class Rage4Api {
      * @param string $email
      * @param integer $subnet
      * @throws Rage4Exception
-     * @return mixed
+     * @return array<string, mixed>|string
      */
     public function createReverseDomain4($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
@@ -116,7 +118,7 @@ class Rage4Api {
      *
      * @param string $name
      * @throws Rage4Exception
-     * @return string
+     * @return array<string, mixed>|string
      */
     function getDomainByName($name){
     	if (empty($name)) {
@@ -136,13 +138,37 @@ class Rage4Api {
     }
 
     /**
+     * Get a domain name (zone) in your Rage4.com account by ID.
+     *
+     * @param int $id
+     * @return array<string, mixed>|string
+     * @throws Rage4Exception
+     */
+    public function getDomain($id) {
+        $id = (int)$id;
+        if (empty($id)) {
+            throw new Rage4Exception("(method: getDomain) id is required");
+        }
+
+        $response = $this->client->executeApi("GetDomain", array('id'=>$id));
+        if(isset($response['errors']) && count($response['errors'])){
+            $type = array_keys($response['errors']);
+            return $response['errors'][$type[0]][0];
+        } else if (isset($response['error']) && $response['error']!="") {
+            return $response['error'];
+        } else {
+            return $response;
+        }
+    }
+
+    /**
      * Create a reverse IPv6 domain name (zone) in your Rage4.com account
      *
      * @param string $domain_name domain name (for reverse domains: ip6.arpa or in-addr.arpa)
      * @param string $email owner's email
      * @param int $subnet valid subnet mask
      * @throws Rage4Exception
-     * @return string
+     * @return array<string, mixed>|string
      */
     public function createReverseDomain6($domain_name, $email, $subnet) {
         if (empty($domain_name) || empty($email) || empty($subnet)) {
@@ -167,7 +193,7 @@ class Rage4Api {
      *
      * @param int $domain_id
      * @throws Rage4Exception
-     * @return bool
+     * @return bool|string
      */
     public function deleteDomain($domain_id) {
         // explicitly typecast into integer
@@ -196,7 +222,7 @@ class Rage4Api {
      *
      * @param string $domain the domain
      * @throws Rage4Exception
-     * @return bool
+     * @return bool|string
      */
     public function importDomain($domain) {
         // explicitly typecast into string
@@ -222,7 +248,7 @@ class Rage4Api {
      *
      * @param int $domain_id
      * @throws Rage4Exception
-     * @return string|array error or array of records
+     * @return array<int, array<string, mixed>>|string error or array of records
      */
     public function getRecords($domain_id) {
         // explicitly typecast into integer
@@ -246,7 +272,7 @@ class Rage4Api {
     /**
      * Get a list of valid Geographical regions
      *
-     * @return string|array error or array of geo regions
+     * @return array<int, array<string, mixed>>|string error or array of geo regions
      */
     public function getGeoRegions() {
     	$response = $this->client->executeApi("ListGeoRegions");
@@ -263,7 +289,7 @@ class Rage4Api {
     /**
      * Get a list of valid record types and their numerical values
      *
-     * @return string|array error or array of record types
+     * @return array<int|string, mixed>|string error or array of record types
      */
     public function getRecordTypes() {
         $response = $this->client->executeApi("ListRecordTypes");
@@ -287,17 +313,17 @@ class Rage4Api {
      * @param int $domain_id
      * @param string $name name of the record
      * @param string $content content of the record
-     * @param string $type record type, should be one of: NS, A, AAAA, CNAME, MX, TXT, SRV, PTR
+     * @param string $record_type record type, should be one of: NS, A, AAAA, CNAME, MX, TXT, SRV, PTR
      * @param int|null|string $priority priority of the record being created (optional)
      * @param bool $failover Failure support enabled
      * @param string $failovercontent Failure IP / content
      * @param int $ttl TTL of record
      * @param int $geozone Geographical Zone ID (or -1 for closest first)
-     * @param null|float $geolat Latitude override
-     * @param null|float $geolong Longitude override
+     * @param float|string|null $geolat Latitude override
+     * @param float|string|null $geolong Longitude override
      * @param bool $geolock Lock Geographical coordinates
      * @throws Rage4Exception
-     * @return string
+     * @return array<string, mixed>|string
      */
     public function createRecord($domain_id, $name, $content, $record_type="TXT", $priority="", $failover=false, $failovercontent="", $ttl = 3600, $geozone=0, $geolat=null, $geolong=null, $geolock=true) {
         // explicitly typecast into required types
@@ -340,15 +366,15 @@ class Rage4Api {
      * @param int $record_id record id that you wish to update
      * @param string $name name of the record
      * @param string $content content of the record
-     * @param int|null $priority priority of the record being created (optional)
+     * @param int|string|null $priority priority of the record being created (optional)
      * @param bool $failover Failure support enabled
      * @param string $failovercontent Failure IP / content
      * @param int $ttl TTL of record
-     * @param int $geozone Geographical Zone ID (or -1 for closest first)
-     * @param null|float $geolat Latitude override
-     * @param null|float $geolong Longitude override
+     * @param int|string $geozone Geographical Zone ID (or -1 for closest first)
+     * @param float|string|null $geolat Latitude override
+     * @param float|string|null $geolong Longitude override
      * @throws Rage4Exception
-     * @return string
+     * @return array<string, mixed>|string
      */
     public function updateRecord($record_id, $name, $content, $priority=null, $failover=false, $failovercontent="", $ttl = 3600, $geozone = 0, $geolat = null, $geolong = null) {
         // explicitly typecast into required types

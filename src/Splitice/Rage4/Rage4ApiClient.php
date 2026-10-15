@@ -31,7 +31,7 @@ class Rage4ApiClient implements IRage4ApiClient
 
         $this->ch = curl_init();
         curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->ch, CURLOPT_HEADER, FALSE);
         curl_setopt($this->ch, CURLOPT_TIMEOUT, 60);
         curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, 10);
@@ -40,7 +40,7 @@ class Rage4ApiClient implements IRage4ApiClient
     }
 
     /**
-     * @param array $query Query string data
+     * @param array<string, mixed> $query Query string data
      * @return string an encoded query string
      */
     public function buildQueryString(array $query){
@@ -56,9 +56,9 @@ class Rage4ApiClient implements IRage4ApiClient
 
     /**
      * @param string $method
-     * @param array $query_data
+     * @param array<string, mixed> $query_data
      * @throws Rage4Exception
-     * @return string
+     * @return array<int|string, mixed>
      */
     public function executeApi($method, array $query_data = array()) {
         //echo "Trying ... https://secure.rage4.com/rapi/$method <br />";
@@ -102,10 +102,10 @@ class Rage4ApiClient implements IRage4ApiClient
 
         //JSON
         $json = @json_decode($result,true);
-        if($json === false){
+        if(!is_array($json)){
             throw new Rage4Exception("Invalid response JSON from Rage4 API");
         }
 
         return $json;
     }
-} 
+}
