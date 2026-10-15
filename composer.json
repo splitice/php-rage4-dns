@@ -21,6 +21,10 @@
 	},
 	"scripts" : {
 		"phpstan" : "phpstan analyse --no-progress",
-		"test" : "phpunit"
+		"test" : "phpunit",
+		"test:coverage" : [
+			"phpunit --coverage-clover coverage.clover.xml",
+			"@php tests/assert-method-coverage.php coverage.clover.xml"
+		]
 	}
 }

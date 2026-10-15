@@ -8,13 +8,14 @@ permissions:
     contents: read
 
 jobs:
-    phpstan:
+    quality:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
             - uses: shivammathur/setup-php@v2
               with:
                   php-version: "8.4"
-                  coverage: none
+                  coverage: pcov
             - run: composer install --no-interaction --no-progress --no-ansi
             - run: composer phpstan
+            - run: composer test:coverage
